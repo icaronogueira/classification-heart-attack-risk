@@ -27,14 +27,14 @@ data.isnull().sum()
 
 
 # Generates the target variable distribution histogram
-# >>>>>>>>>>>>>>>> RESOLVER: equalizar essa distribuição ???
 graph_utils.plot_histogram(
     data['Heart Attack Risk'], 'Heart Attack Risk', 'Frequency', 'Heart Attack Risk Histogram')
 
 
 # Let's do the correlation between the target variable and each individual feature.
 
-# Before I identify the numerical and categorical features, a split on the feature 'Blood Pressure' is needed
+# Before I identify the numerical and categorical features, a split on the feature
+# 'Blood Pressure' is needed
 data['Systolic_Blood_Pressure'] = data['Blood Pressure'].str.split(
     '/').str[0].astype(int)
 data['Diastolic_Blood_Pressure'] = data['Blood Pressure'].str.split(
@@ -42,13 +42,14 @@ data['Diastolic_Blood_Pressure'] = data['Blood Pressure'].str.split(
 data.drop('Blood Pressure', axis=1, inplace=True)
 
 # Now, I identify the numerical and categorical features.
-# doing the individual features histograms should be useful for this (and looking for outliers)
+# doing the individual features histograms should be useful for this (and looking
+# for outliers)
 for column in data.columns[1:]:
     graph_utils.plot_histogram(
         data[column], column, 'Frequency', column+' histogram')
 
-# now a little manual work
 
+# now a little manual work
 numerical_features = ['Age', 'Cholesterol',
                       'Systolic_Blood_Pressure', 'Diastolic_Blood_Pressure', 'Heart Rate',
                       'Exercise Hours Per Week', 'Stress Level', 'Sedentary Hours Per Day',
@@ -58,6 +59,7 @@ categorical_features = ['Sex', 'Diabetes', 'Family History', 'Smoking',
                         'Medication Use', 'Physical Activity Days Per Week', 'Sleep Hours Per Day',
                         'Country', 'Continent', 'Hemisphere']
 target = data['Heart Attack Risk']
+
 
 # Analizing correlation between numeric features
 correlation_matrix = data[numerical_features].corr()
@@ -69,5 +71,7 @@ print(correlation_matrix[np.abs(correlation_matrix) > threshold])
 # all of our features bring some new information that should be learned by the model
 
 
-# >>>>>>>>>>>>>>>> A FAZER: analisar correlação da target variable com as variáveis categoricas
-# utilizar df.groupby('categorical_feature')['target_variable'].mean() ou gerar histograma
+# Analyzing correlation between target variable and categorical features
+for feature in categorical_features:
+    print("\nHeart Attack Risk by ", feature)
+    print(data.groupby(feature)['Heart Attack Risk'].sum())
