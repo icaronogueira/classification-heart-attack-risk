@@ -10,8 +10,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import graph_utils
 from sklearn.preprocessing import LabelEncoder, StandardScaler, MinMaxScaler, RobustScaler, MaxAbsScaler, PowerTransformer, QuantileTransformer
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.metrics import accuracy_score, roc_auc_score
 
 # load the data from a kaggle dataset
@@ -84,19 +85,20 @@ for feature in categorical_features:
 
 
 # LABEL ENCODING ON THE SEX AND DIET FEATURES
-encoders = {
-    'Sex': LabelEncoder(),
-    'Diet': LabelEncoder()
-}
 
-for col, encoder in encoders.items():
-    encoder.fit(data[col])
-    data[col+'_encoded'] = encoder.transform(data[col])
+sex_encoder = LabelEncoder()
+diet_encoder = LabelEncoder()
 
-data = data.drop(encoders.keys(), axis=1)
+sex_encoder.fit(data['Sex'])
+diet_encoder.fit(data['Diet'])
+data['sex_encoded'] = sex_encoder.transform(data['Sex'])
+data['diet_encoded'] = diet_encoder.transform(data['Diet'])
 
 data = pd.get_dummies(
-    data, columns=['Country', 'Hemisphere', 'Continent'], drop_first=False)
+    data, columns=['Country', 'Hemisphere', 'Continent'], drop_first=False, dtype=int)
+
+
+data = data.drop(['Sex', 'Diet'], axis=1)
 
 
 # DATA SPLITTING AND SCALING
@@ -117,23 +119,23 @@ scaler.fit(X_train)
 X_train_scaled = scaler.transform(X_train)
 X_val_scaled = scaler.transform(X_val)
 
+# GBM with GridSearchCV
+param_grid = {
+    'n_estimators': [100, 200, 300],
+    'learning_rate': [0.01, 0.1, 0.2],
+    'max_depth': [3, 4, 5]
+}
 
-# MODEL TRAINING AND VALIDATION (DECISION TREE CLASSIFIER)
-accuracy_scores = []
-roc_auc_scores = []
-range_a = 3
-range_b = 15
 
-decision_tree_classifier = DecisionTreeClassifier(random_state=42)
+gbm = GradientBoostingClassifier()
+grid_search = GridSearchCV(estimator=gbm, param_grid=param_grid,
+                           cv=5, scoring='accuracy', verbose=3, n_jobs=1)
+grid_search.fit(X_train_scaled, y_train)
 
-# testing some max_depths
-for depth in range(range_a, range_b):
-    decision_tree_classifier.set_params(max_depth=depth)
-    decision_tree_classifier.fit(X_train, y_train)
-    prediction = decision_tree_classifier.predict(X_val)
+best_model = grid_search.best_estimator_
+best_score = grid_search.best_score_
+print(f"Best score: {best_score}")
+print(f"Best Parameters: {grid_search.best_params_}")
 
-    accuracy_scores.append(accuracy_score(y_val, prediction))
-    roc_auc_scores.append(roc_auc_score(y_val, prediction))
-
-# Plotting the accuracy graph
-graph_utils.plot_accuracy(range_a, range_b, accuracy_scores, roc_auc_scores)
+test_accuracy = best_model.score(X_val_scaled, y_val)
+print(f"Test Set Accuracy: {test_accuracy}")
