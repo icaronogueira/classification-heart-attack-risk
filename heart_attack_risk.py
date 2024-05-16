@@ -30,10 +30,7 @@ data.describe()
 data.isnull().sum()
 
 
-# i'm gonna drop the columns: country, continent and hemisphere for not finding relevance
-# for the prediction. Later on i'll include and check if the accuracy of the model
-# improves at all
-data = data.drop(['Patient ID', 'Country', 'Continent', 'Hemisphere'], axis=1)
+data = data.drop(['Patient ID'], axis=1)
 
 # Generates the target variable distribution histogram
 graph_utils.plot_histogram(
@@ -87,15 +84,19 @@ for feature in categorical_features:
 
 
 # LABEL ENCODING ON THE SEX AND DIET FEATURES
+encoders = {
+    'Sex': LabelEncoder(),
+    'Diet': LabelEncoder()
+}
 
-sex_encoder = LabelEncoder()
-diet_encoder = LabelEncoder()
+for col, encoder in encoders.items():
+    encoder.fit(data[col])
+    data[col+'_encoded'] = encoder.transform(data[col])
 
-sex_encoder.fit(data['Sex'])
-diet_encoder.fit(data['Diet'])
-data['Sex_encoded'] = sex_encoder.transform(data['Sex'])
-data['Diet_encoded'] = diet_encoder.transform(data['Diet'])
-data = data.drop(['Sex', 'Diet'], axis=1)
+data = data.drop(encoders.keys(), axis=1)
+
+data = pd.get_dummies(
+    data, columns=['Country', 'Hemisphere', 'Continent'], drop_first=False)
 
 
 # DATA SPLITTING AND SCALING
