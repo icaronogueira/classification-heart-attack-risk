@@ -14,6 +14,8 @@ from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.metrics import accuracy_score, roc_auc_score
+from imblearn.over_sampling import SMOTE
+import shap
 
 # load the data from a kaggle dataset
 data = pd.read_csv('heart_attack_prediction_dataset.csv')
@@ -102,19 +104,19 @@ y = data['Heart Attack Risk']
 X_train, X_val, y_train, y_val = train_test_split(
     X, y, test_size=0.2, stratify=y, random_state=42)
 
-graph_utils.plot_histogram(
-    y_train, 'Heart Attack Risk', 'Frequency', 'Heart Attack Risk train Histogram')
-graph_utils.plot_histogram(
-    y_val, 'Heart Attack Risk', 'Frequency', 'Heart Attack Risk validation Histogram')
+#applying smote
+smote = SMOTE(random_state=42)
+X_train_smote, y_train_smote = smote.fit_resample(X_train, y_train)
 
 
-print("Training set shape: ", X_train.shape, y_train.shape)
-print("Validation set shape: ", X_val.shape, y_val.shape)
+graph_utils.plot_histogram(
+    y_train_smote, 'Heart Attack Risk', 'Frequency', 'Heart Attack Risk train Histogram')
+
 
 
 # scaler
 scaler = StandardScaler()
-X_train[numerical_features] = scaler.fit_transform(X_train[numerical_features])
+X_train_smote[numerical_features] = scaler.fit_transform(X_train_smote[numerical_features])
 X_val[numerical_features] = scaler.transform(X_val[numerical_features])
 
 
@@ -123,6 +125,7 @@ X_val[numerical_features] = scaler.transform(X_val[numerical_features])
 
 gbm = GradientBoostingClassifier(
     learning_rate=0.01, max_depth=3, n_estimators=100)
-gbm.fit(X_train, y_train)
+gbm.fit(X_train_smote, y_train_smote)
 accuracy = gbm.score(X_val, y_val)
 print(f"Accuracy: {accuracy}")
+
