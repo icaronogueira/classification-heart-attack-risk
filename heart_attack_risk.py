@@ -42,8 +42,10 @@ graph_utils.plot_histogram(
 
 # Before I identify the numerical and categorical features, a split on the feature
 # 'Blood Pressure' is needed
-data['Systolic_BP', 'Diastolic_BP'] = data['Blood Pressure'].str.split(
-    '/', expand=True)
+data['Systolic_BP'] = data['Blood Pressure'].str.split(
+    '/', expand=True)[0]
+data['Diastolic_BP'] = data['Blood Pressure'].str.split(
+    '/', expand=True)[1]
 data['Systolic_BP'] = pd.to_numeric(data['Systolic_BP'])
 data['Diastolic_BP'] = pd.to_numeric(data['Diastolic_BP'])
 
@@ -60,7 +62,7 @@ for column in data.columns[1:]:
 
 # now a little manual work
 numerical_features = ['Age', 'Cholesterol',
-                      'Systolic_Blood_Pressure', 'Diastolic_Blood_Pressure', 'Heart Rate',
+                      'Systolic_BP', 'Diastolic_BP', 'Heart Rate',
                       'Exercise Hours Per Week', 'Stress Level', 'Sedentary Hours Per Day',
                       'Income', 'BMI', 'Triglycerides']
 categorical_features = ['Sex', 'Diabetes', 'Family History', 'Smoking',
@@ -88,20 +90,9 @@ for feature in categorical_features:
 
 # LABEL ENCODING ON THE SEX AND DIET FEATURES
 
-sex_encoder = LabelEncoder()
-diet_encoder = LabelEncoder()
-
-sex_encoder.fit(data['Sex'])
-diet_encoder.fit(data['Diet'])
-data['sex_encoded'] = sex_encoder.transform(data['Sex'])
-data['diet_encoded'] = diet_encoder.transform(data['Diet'])
-
 data = pd.get_dummies(
-    data, columns=['Country', 'Hemisphere', 'Continent', 'Smoking', 'Family History'], drop_first=False, dtype=int)
-
-
-data = data.drop(['Sex', 'Diet'], axis=1)
-
+    data, columns=['Diet', 'Sex', 'Obesity',
+                   'Country', 'Continent', 'Hemisphere'], drop_first=False, dtype=int)
 
 # DATA SPLITTING AND SCALING
 
@@ -115,17 +106,11 @@ print("Training set shape: ", X_train.shape, y_train.shape)
 print("Validation set shape: ", X_val.shape, y_val.shape)
 
 
-# SCALING ALTERNATIVES
-scaler = StandardScaler()
-scaler.fit(X_train)
-X_train_scaled = scaler.transform(X_train)
-X_val_scaled = scaler.transform(X_val)
-
 # Gradient Boosting Machine
 
 
 gbm = GradientBoostingClassifier(
     learning_rate=0.01, max_depth=3, n_estimators=100)
-gbm.fit(X_train_scaled, y_train)
-accuracy = gbm.score(X_val_scaled, y_val)
+gbm.fit(X_train, y_train)
+accuracy = gbm.score(X_val, y_val)
 print(f"Accuracy: {accuracy}")
