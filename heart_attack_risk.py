@@ -42,11 +42,13 @@ graph_utils.plot_histogram(
 
 # Before I identify the numerical and categorical features, a split on the feature
 # 'Blood Pressure' is needed
-data['Systolic_Blood_Pressure'] = data['Blood Pressure'].str.split(
-    '/').str[0].astype(int)
-data['Diastolic_Blood_Pressure'] = data['Blood Pressure'].str.split(
-    '/').str[1].astype(int)
+data['Systolic_BP', 'Diastolic_BP'] = data['Blood Pressure'].str.split(
+    '/', expand=True)
+data['Systolic_BP'] = pd.to_numeric(data['Systolic_BP'])
+data['Diastolic_BP'] = pd.to_numeric(data['Diastolic_BP'])
+
 data.drop('Blood Pressure', axis=1, inplace=True)
+
 
 # Now, I identify the numerical and categorical features.
 # doing the individual features histograms should be useful for this (and looking
@@ -95,7 +97,7 @@ data['sex_encoded'] = sex_encoder.transform(data['Sex'])
 data['diet_encoded'] = diet_encoder.transform(data['Diet'])
 
 data = pd.get_dummies(
-    data, columns=['Country', 'Hemisphere', 'Continent'], drop_first=False, dtype=int)
+    data, columns=['Country', 'Hemisphere', 'Continent', 'Smoking', 'Family History'], drop_first=False, dtype=int)
 
 
 data = data.drop(['Sex', 'Diet'], axis=1)
