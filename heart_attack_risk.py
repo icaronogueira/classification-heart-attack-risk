@@ -9,7 +9,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import graph_utils
-from sklearn.preprocessing import LabelEncoder, StandardScaler, MinMaxScaler, RobustScaler, MaxAbsScaler, PowerTransformer, QuantileTransformer
+from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import GradientBoostingClassifier
@@ -102,8 +102,20 @@ y = data['Heart Attack Risk']
 X_train, X_val, y_train, y_val = train_test_split(
     X, y, test_size=0.2, stratify=y, random_state=42)
 
+graph_utils.plot_histogram(
+    y_train, 'Heart Attack Risk', 'Frequency', 'Heart Attack Risk train Histogram')
+graph_utils.plot_histogram(
+    y_val, 'Heart Attack Risk', 'Frequency', 'Heart Attack Risk validation Histogram')
+
+
 print("Training set shape: ", X_train.shape, y_train.shape)
 print("Validation set shape: ", X_val.shape, y_val.shape)
+
+
+# scaler
+scaler = StandardScaler()
+X_train[numerical_features] = scaler.fit_transform(X_train[numerical_features])
+X_val[numerical_features] = scaler.transform(X_val[numerical_features])
 
 
 # Gradient Boosting Machine
