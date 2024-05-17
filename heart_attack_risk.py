@@ -119,23 +119,11 @@ scaler.fit(X_train)
 X_train_scaled = scaler.transform(X_train)
 X_val_scaled = scaler.transform(X_val)
 
-# GBM with GridSearchCV
-param_grid = {
-    'n_estimators': [100, 200, 300],
-    'learning_rate': [0.01, 0.1, 0.2],
-    'max_depth': [3, 4, 5]
-}
+# Gradient Boosting Machine
 
 
-gbm = GradientBoostingClassifier()
-grid_search = GridSearchCV(estimator=gbm, param_grid=param_grid,
-                           cv=5, scoring='accuracy', verbose=3, n_jobs=1)
-grid_search.fit(X_train_scaled, y_train)
-
-best_model = grid_search.best_estimator_
-best_score = grid_search.best_score_
-print(f"Best score: {best_score}")
-print(f"Best Parameters: {grid_search.best_params_}")
-
-test_accuracy = best_model.score(X_val_scaled, y_val)
-print(f"Test Set Accuracy: {test_accuracy}")
+gbm = GradientBoostingClassifier(
+    learning_rate=0.01, max_depth=3, n_estimators=100)
+gbm.fit(X_train_scaled, y_train)
+accuracy = gbm.score(X_val_scaled, y_val)
+print(f"Accuracy: {accuracy}")
